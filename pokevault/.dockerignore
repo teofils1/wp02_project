@@ -1,0 +1,15 @@
+target/
+!target/*.jar
+.git
+.gitignore
+*.md
+*.log
+.mvn/wrapper/maven-wrapper.jar
+mvnw
+mvnw.cmd
+.idea/
+.vscode/
+*.iml
+.settings/
+.project
+.classpath

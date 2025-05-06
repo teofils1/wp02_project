@@ -1,0 +1,62 @@
+version: '3.8'
+
+services:
+  app:
+    build: .
+    container_name: pokevault-app
+    ports:
+      - '8080:8080'
+    environment:
+      - SPRING_DATASOURCE_URL=jdbc:mariadb://db:3306/pokevault?createDatabaseIfNotExist=true
+      - SPRING_DATASOURCE_USERNAME=root
+      - SPRING_DATASOURCE_PASSWORD=teodor
+      - SPRING_PROFILES_ACTIVE=docker
+    depends_on:
+      db:
+        condition: service_healthy
+    networks:
+      - pokevault-network
+    restart: on-failure
+    healthcheck:
+      test: ['CMD', 'curl', '-f', 'http://localhost:8080/actuator/health']
+      interval: 10s
+      timeout: 5s
+      retries: 5
+      start_period: 40s
+
+  db:
+    image: mariadb:10.11
+    container_name: pokevault-db
+    ports:
+      - '3307:3306'
+    environment:
+      - MARIADB_ROOT_PASSWORD=teodor
+      - MARIADB_DATABASE=pokevault
+    volumes:
+      - mariadb-data:/var/lib/mysql
+    networks:
+      - pokevault-network
+    healthcheck:
+      test:
+        [
+          'CMD',
+          'mysqladmin',
+          'ping',
+          '-h',
+          'localhost',
+          '-u',
+          'root',
+          '-pteodor',
+        ]
+      interval: 10s
+      timeout: 5s
+      retries: 10
+      start_period: 30s
+    restart: always
+
+networks:
+  pokevault-network:
+    driver: bridge
+
+volumes:
+  mariadb-data:
