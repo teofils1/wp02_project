@@ -1,0 +1,187 @@
+<!DOCTYPE html>
+<html
+  xmlns:th="http://www.thymeleaf.org"
+  xmlns:sec="http://www.thymeleaf.org/extras/spring-security"
+>
+  <head>
+    <meta charset="UTF-8" />
+    <title th:text="${card.name} + ' - PokeVault'">
+      Card Details - PokeVault
+    </title>
+    <style>
+      body {
+        font-family: Arial, sans-serif;
+        max-width: 800px;
+        margin: 0 auto;
+        padding: 20px;
+      }
+      h1,
+      h2 {
+        color: #333;
+      }
+      .header {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        margin-bottom: 30px;
+      }
+      .nav-menu {
+        display: flex;
+        gap: 15px;
+      }
+      .nav-link {
+        text-decoration: none;
+        color: #0066cc;
+      }
+      .nav-link:hover {
+        text-decoration: underline;
+      }
+      .logout-btn {
+        background-color: #f44336;
+        color: white;
+        padding: 8px 15px;
+        border: none;
+        border-radius: 4px;
+        cursor: pointer;
+        text-decoration: none;
+      }
+      .logout-btn:hover {
+        background-color: #d32f2f;
+      }
+      .card-container {
+        display: flex;
+        gap: 30px;
+      }
+      .card-image-container {
+        flex: 0 0 300px;
+      }
+      .card-image {
+        width: 100%;
+        border-radius: 8px;
+        box-shadow: 0 5px 15px rgba(0, 0, 0, 0.1);
+      }
+      .card-details {
+        flex: 1;
+      }
+      .card-name {
+        font-size: 24px;
+        font-weight: bold;
+        margin-bottom: 10px;
+      }
+      .card-meta {
+        display: flex;
+        gap: 15px;
+        margin-bottom: 15px;
+      }
+      .card-type,
+      .card-rarity {
+        background-color: #f0f0f0;
+        padding: 5px 10px;
+        border-radius: 15px;
+        font-size: 14px;
+      }
+      .card-description {
+        margin: 15px 0;
+        line-height: 1.5;
+      }
+      .owner-info {
+        margin-top: 20px;
+        font-style: italic;
+        color: #666;
+      }
+      .action-buttons {
+        margin-top: 20px;
+        display: flex;
+        gap: 10px;
+      }
+      .action-button {
+        display: inline-block;
+        padding: 8px 15px;
+        border-radius: 4px;
+        text-decoration: none;
+        color: white;
+      }
+      .edit-button {
+        background-color: #2196f3;
+      }
+      .sell-button {
+        background-color: #ff9800;
+      }
+      .back-button {
+        background-color: #607d8b;
+      }
+    </style>
+  </head>
+  <body>
+    <div class="header">
+      <h1>Card Details</h1>
+      <div class="nav-menu">
+        <a href="/home" class="nav-link">Home</a>
+        <a href="/cards" class="nav-link">Browse Cards</a>
+        <a href="/cards/my-cards" class="nav-link">My Cards</a>
+        <a href="/auctions" class="nav-link">Auctions</a>
+        <a href="/auctions/my-auctions" class="nav-link">My Auctions</a>
+        <a href="/auctions/my-bids" class="nav-link">My Bids</a>
+        <span sec:authentication="name"></span>
+        <form th:action="@{/logout}" method="post" style="display: inline">
+          <button type="submit" class="logout-btn">Logout</button>
+        </form>
+      </div>
+    </div>
+
+    <div class="card-container">
+      <div class="card-image-container">
+        <img
+          th:if="${card.imageUrl}"
+          th:src="${card.imageUrl}"
+          class="card-image"
+          alt="Pokemon Card"
+        />
+        <img
+          th:unless="${card.imageUrl}"
+          src="https://via.placeholder.com/300x420?text=No+Image"
+          class="card-image"
+          alt="Pokemon Card"
+        />
+      </div>
+
+      <div class="card-details">
+        <div class="card-name" th:text="${card.name}">Card Name</div>
+
+        <div class="card-meta">
+          <div class="card-type" th:text="${card.type}">Card Type</div>
+          <div class="card-rarity" th:text="${card.rarity}">Card Rarity</div>
+        </div>
+
+        <div class="card-description" th:text="${card.description}">
+          Card description goes here. This is a detailed description of the
+          Pokemon card.
+        </div>
+
+        <div class="owner-info">
+          Owned by: <span th:text="${card.owner.username}">Username</span>
+        </div>
+
+        <div class="action-buttons">
+          <!-- Show edit/sell buttons if current user is the owner -->
+          <div th:if="${card.owner.username == #authentication.name}">
+            <a
+              th:href="@{/cards/edit/{id}(id=${card.id})}"
+              class="action-button edit-button"
+              >Edit Card</a
+            >
+            <a
+              th:href="@{/auctions/create?cardId={id}(id=${card.id})}"
+              class="action-button sell-button"
+              >Sell Card</a
+            >
+          </div>
+
+          <a href="javascript:history.back()" class="action-button back-button"
+            >Back</a
+          >
+        </div>
+      </div>
+    </div>
+  </body>
+</html>

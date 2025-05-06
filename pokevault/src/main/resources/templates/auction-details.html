@@ -1,0 +1,347 @@
+<!DOCTYPE html>
+<html
+  xmlns:th="http://www.thymeleaf.org"
+  xmlns:sec="http://www.thymeleaf.org/extras/spring-security"
+>
+  <head>
+    <meta charset="UTF-8" />
+    <title th:text="${auction.card.name} + ' Auction - PokeVault'">
+      Auction Details - PokeVault
+    </title>
+    <style>
+      body {
+        font-family: Arial, sans-serif;
+        max-width: 900px;
+        margin: 0 auto;
+        padding: 20px;
+      }
+      h1,
+      h2 {
+        color: #333;
+      }
+      .header {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        margin-bottom: 30px;
+      }
+      .nav-menu {
+        display: flex;
+        gap: 15px;
+      }
+      .nav-link {
+        text-decoration: none;
+        color: #0066cc;
+      }
+      .nav-link:hover {
+        text-decoration: underline;
+      }
+      .logout-btn {
+        background-color: #f44336;
+        color: white;
+        padding: 8px 15px;
+        border: none;
+        border-radius: 4px;
+        cursor: pointer;
+        text-decoration: none;
+      }
+      .logout-btn:hover {
+        background-color: #d32f2f;
+      }
+      .auction-container {
+        display: flex;
+        gap: 30px;
+      }
+      .card-image-container {
+        flex: 0 0 350px;
+      }
+      .card-image {
+        width: 100%;
+        border-radius: 8px;
+        box-shadow: 0 5px 15px rgba(0, 0, 0, 0.1);
+      }
+      .auction-details {
+        flex: 1;
+      }
+      .card-info {
+        margin-bottom: 20px;
+      }
+      .card-name {
+        font-size: 24px;
+        font-weight: bold;
+        margin-bottom: 10px;
+      }
+      .card-meta {
+        display: flex;
+        gap: 15px;
+        margin-bottom: 5px;
+      }
+      .card-type,
+      .card-rarity {
+        background-color: #f0f0f0;
+        padding: 5px 10px;
+        border-radius: 15px;
+        font-size: 14px;
+      }
+      .card-description {
+        margin: 15px 0;
+        line-height: 1.5;
+      }
+      .auction-info {
+        background-color: #f9f9f9;
+        padding: 15px;
+        border-radius: 8px;
+        margin-bottom: 20px;
+      }
+      .bid-row {
+        display: flex;
+        justify-content: space-between;
+        margin-bottom: 10px;
+      }
+      .current-bid {
+        font-size: 24px;
+        font-weight: bold;
+        color: #ff9800;
+      }
+      .seller-info,
+      .time-info {
+        font-size: 14px;
+        color: #666;
+      }
+      .bid-form {
+        background-color: #e8f5e9;
+        padding: 15px;
+        border-radius: 8px;
+        margin-top: 20px;
+      }
+      .form-group {
+        margin-bottom: 15px;
+      }
+      .form-group label {
+        display: block;
+        margin-bottom: 5px;
+        font-weight: bold;
+      }
+      .form-group input {
+        width: 100%;
+        padding: 8px;
+        border: 1px solid #ddd;
+        border-radius: 4px;
+        box-sizing: border-box;
+      }
+      .bid-button {
+        background-color: #4caf50;
+        color: white;
+        padding: 10px 15px;
+        border: none;
+        border-radius: 4px;
+        cursor: pointer;
+        font-size: 16px;
+      }
+      .bid-button:hover {
+        background-color: #45a049;
+      }
+      .alert {
+        padding: 10px 15px;
+        border-radius: 4px;
+        margin-bottom: 15px;
+      }
+      .alert-success {
+        background-color: #d4edda;
+        color: #155724;
+        border: 1px solid #c3e6cb;
+      }
+      .alert-danger {
+        background-color: #f8d7da;
+        color: #721c24;
+        border: 1px solid #f5c6cb;
+      }
+      .bids-history {
+        margin-top: 30px;
+      }
+      .bid-history-item {
+        padding: 10px;
+        border-bottom: 1px solid #eee;
+        display: flex;
+        justify-content: space-between;
+      }
+      .bidder-name {
+        font-weight: bold;
+      }
+      .bid-amount {
+        color: #ff9800;
+      }
+      .bid-time {
+        color: #666;
+        font-size: 0.9em;
+      }
+    </style>
+  </head>
+  <body>
+    <div class="header">
+      <h1>Auction Details</h1>
+      <div class="nav-menu">
+        <a href="/home" class="nav-link">Home</a>
+        <a href="/cards" class="nav-link">Browse Cards</a>
+        <a href="/cards/my-cards" class="nav-link">My Cards</a>
+        <a href="/auctions" class="nav-link">Auctions</a>
+        <a href="/auctions/my-auctions" class="nav-link">My Auctions</a>
+        <a href="/auctions/my-bids" class="nav-link">My Bids</a>
+        <span sec:authentication="name"></span>
+        <form th:action="@{/logout}" method="post" style="display: inline">
+          <button type="submit" class="logout-btn">Logout</button>
+        </form>
+      </div>
+    </div>
+
+    <div th:if="${param.success}" class="alert alert-success">
+      Your bid has been placed successfully!
+    </div>
+
+    <div th:if="${param.error}" class="alert alert-danger">
+      There was an error with your bid. Please ensure your bid is higher than
+      the current bid and try again.
+    </div>
+
+    <div class="auction-container">
+      <div class="card-image-container">
+        <img
+          th:if="${auction.card.imageUrl}"
+          th:src="${auction.card.imageUrl}"
+          class="card-image"
+          alt="Pokemon Card"
+        />
+        <img
+          th:unless="${auction.card.imageUrl}"
+          src="https://via.placeholder.com/350x500?text=No+Image"
+          class="card-image"
+          alt="Pokemon Card"
+        />
+      </div>
+
+      <div class="auction-details">
+        <div class="card-info">
+          <div class="card-name" th:text="${auction.card.name}">Card Name</div>
+
+          <div class="card-meta">
+            <div class="card-type" th:text="${auction.card.type}">
+              Card Type
+            </div>
+            <div class="card-rarity" th:text="${auction.card.rarity}">
+              Card Rarity
+            </div>
+          </div>
+
+          <div class="card-description" th:text="${auction.card.description}">
+            Card description goes here. This is a detailed description of the
+            Pokemon card.
+          </div>
+        </div>
+
+        <div class="auction-info">
+          <div class="bid-row">
+            <div class="current-bid">
+              Current Bid: $<span th:text="${auction.currentBid}">10.00</span>
+            </div>
+            <div class="seller-info">
+              Seller: <span th:text="${auction.seller.username}">username</span>
+            </div>
+          </div>
+
+          <div class="bid-row">
+            <div class="time-info">
+              Start:
+              <span
+                th:text="${#temporals.format(auction.startTime, 'dd MMM yyyy HH:mm')}"
+                >01 Dec 2023 12:00</span
+              >
+            </div>
+            <div class="time-info">
+              End:
+              <span
+                th:text="${#temporals.format(auction.endTime, 'dd MMM yyyy HH:mm')}"
+                >08 Dec 2023 12:00</span
+              >
+            </div>
+          </div>
+        </div>
+
+        <!-- Only show bid form if user is not the seller and auction is active -->
+        <div
+          class="bid-form"
+          th:if="${auction.active && !auction.seller.id.equals(currentUser.id)}"
+        >
+          <h2>Place Your Bid</h2>
+          <form
+            th:action="@{/auctions/{id}/bid(id=${auction.id})}"
+            method="post"
+          >
+            <div class="form-group">
+              <label for="bidAmount"
+                >Your Bid Amount (Minimum: $<span th:text="${minBid}"
+                  >11.00</span
+                >)</label
+              >
+              <input
+                type="number"
+                id="bidAmount"
+                name="bidAmount"
+                th:min="${minBid}"
+                step="0.01"
+                required
+              />
+            </div>
+            <button type="submit" class="bid-button">Place Bid</button>
+          </form>
+        </div>
+
+        <div
+          th:if="${auction.active && auction.seller.id.equals(currentUser.id)}"
+        >
+          <form
+            th:action="@{/auctions/{id}/end(id=${auction.id})}"
+            method="post"
+          >
+            <button
+              type="submit"
+              class="bid-button"
+              style="background-color: #f44336"
+              onclick="return confirm('Are you sure you want to end this auction?');"
+            >
+              End Auction
+            </button>
+          </form>
+        </div>
+
+        <div th:if="${!auction.active}" class="alert alert-info">
+          This auction has ended.
+          <span th:if="${auction.currentBidder != null}">
+            Winner:
+            <span th:text="${auction.currentBidder.username}">winner</span>
+          </span>
+          <span th:unless="${auction.currentBidder != null}">
+            No bids were placed.
+          </span>
+        </div>
+
+        <!-- Bid History -->
+        <div class="bids-history" th:if="${!auction.bids.empty}">
+          <h2>Bid History</h2>
+          <div class="bid-history-item" th:each="bid : ${auction.bids}">
+            <span class="bidder-name" th:text="${bid.bidder.username}"
+              >User123</span
+            >
+            <span class="bid-amount"
+              >$<span th:text="${bid.amount}">12.00</span></span
+            >
+            <span
+              class="bid-time"
+              th:text="${#temporals.format(bid.bidTime, 'dd MMM HH:mm')}"
+              >01 Dec 14:30</span
+            >
+          </div>
+        </div>
+      </div>
+    </div>
+  </body>
+</html>
