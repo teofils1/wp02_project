@@ -1,0 +1,214 @@
+<!DOCTYPE html>
+<html
+  xmlns:th="http://www.thymeleaf.org"
+  xmlns:sec="http://www.thymeleaf.org/extras/spring-security"
+>
+  <head>
+    <meta charset="UTF-8" />
+    <title>Create Auction - PokeVault</title>
+    <style>
+      body {
+        font-family: Arial, sans-serif;
+        max-width: 600px;
+        margin: 0 auto;
+        padding: 20px;
+      }
+      h1 {
+        color: #333;
+      }
+      .form-group {
+        margin-bottom: 20px;
+      }
+      label {
+        display: block;
+        margin-bottom: 5px;
+        font-weight: bold;
+      }
+      select,
+      input {
+        width: 100%;
+        padding: 10px;
+        border: 1px solid #ddd;
+        border-radius: 4px;
+        box-sizing: border-box;
+      }
+      .card-grid {
+        display: grid;
+        grid-template-columns: repeat(2, 1fr);
+        gap: 15px;
+        margin-bottom: 20px;
+      }
+      .card-option {
+        border: 1px solid #ddd;
+        border-radius: 8px;
+        padding: 10px;
+        cursor: pointer;
+        transition: all 0.3s;
+      }
+      .card-option:hover {
+        border-color: #4caf50;
+      }
+      .card-option.selected {
+        border-color: #4caf50;
+        background-color: #e8f5e9;
+      }
+      .card-image {
+        width: 100%;
+        height: 150px;
+        object-fit: contain;
+        border-radius: 4px;
+        margin-bottom: 10px;
+      }
+      .card-name {
+        font-weight: bold;
+        margin-bottom: 5px;
+      }
+      .card-meta {
+        color: #666;
+        font-size: 0.9em;
+      }
+      button {
+        background-color: #4caf50;
+        color: white;
+        padding: 10px 15px;
+        border: none;
+        border-radius: 4px;
+        cursor: pointer;
+        font-size: 16px;
+      }
+      button:hover {
+        background-color: #45a049;
+      }
+      .cancel-link {
+        margin-left: 10px;
+        text-decoration: none;
+        color: #666;
+      }
+      .no-cards-message {
+        background-color: #f8d7da;
+        color: #721c24;
+        padding: 15px;
+        border-radius: 4px;
+        margin-bottom: 20px;
+      }
+      .alert {
+        padding: 15px;
+        margin-bottom: 20px;
+        border-radius: 4px;
+      }
+      .alert-danger {
+        background-color: #f2dede;
+        color: #a94442;
+      }
+    </style>
+  </head>
+  <body>
+    <h1>Create New Auction</h1>
+
+    <div th:if="${param.error}" class="alert alert-danger">
+      <p th:if="${param.error[0] == 'invalidId'}">
+        Invalid card selection. Please select a card.
+      </p>
+      <p th:unless="${param.error[0] == 'invalidId'}">
+        There was an error creating your auction. Please try again.
+      </p>
+    </div>
+
+    <div th:if="${cards.empty}" class="no-cards-message">
+      <p>
+        You don't have any cards to auction. Please add cards to your collection
+        first.
+      </p>
+      <a href="/cards/add">Add New Card</a>
+    </div>
+
+    <form
+      th:unless="${cards.empty}"
+      th:action="@{/auctions/create}"
+      method="post"
+      onsubmit="return validateForm()"
+    >
+      <div class="form-group">
+        <label>Select Card to Auction:</label>
+        <div class="card-grid">
+          <div
+            th:each="card : ${cards}"
+            class="card-option"
+            th:onclick="'selectCard(' + ${card.id} + ')'"
+            th:id="'card-' + ${card.id}"
+          >
+            <img
+              th:if="${card.imageUrl}"
+              th:src="${card.imageUrl}"
+              class="card-image"
+              alt="Pokemon Card"
+            />
+            <img
+              th:unless="${card.imageUrl}"
+              src="https://via.placeholder.com/150?text=No+Image"
+              class="card-image"
+              alt="Pokemon Card"
+            />
+            <div class="card-name" th:text="${card.name}">Card Name</div>
+            <div class="card-meta">
+              <span th:text="${card.type}">Type</span> •
+              <span th:text="${card.rarity}">Rarity</span>
+            </div>
+          </div>
+        </div>
+        <input type="hidden" id="cardId" name="cardId" required />
+      </div>
+
+      <div class="form-group">
+        <label for="startingPrice">Starting Price ($):</label>
+        <input
+          type="number"
+          id="startingPrice"
+          name="startingPrice"
+          min="1"
+          step="0.01"
+          value="1.00"
+          required
+        />
+      </div>
+
+      <div class="form-group">
+        <label for="durationInDays">Auction Duration (days):</label>
+        <select id="durationInDays" name="durationInDays" required>
+          <option value="1">1 day</option>
+          <option value="3" selected>3 days</option>
+          <option value="5">5 days</option>
+          <option value="7">7 days</option>
+          <option value="10">10 days</option>
+        </select>
+      </div>
+
+      <button type="submit">Create Auction</button>
+      <a href="/cards/my-cards" class="cancel-link">Cancel</a>
+    </form>
+
+    <script>
+      function selectCard(cardId) {
+        // Remove selected class from all cards
+        document.querySelectorAll('.card-option').forEach((card) => {
+          card.classList.remove('selected')
+        })
+
+        // Add selected class to clicked card
+        document.getElementById('card-' + cardId).classList.add('selected')
+
+        // Set the hidden input value
+        document.getElementById('cardId').value = cardId
+      }
+
+      function validateForm() {
+        const cardId = document.getElementById('cardId').value
+        if (!cardId) {
+          alert('Please select a card for the auction')
+          return false
+        }
+        return true
+      }
+    </script>
+  </body>
+</html>
